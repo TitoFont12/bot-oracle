@@ -66,9 +66,8 @@ def main():
     fin = time.time() + MINUTOS * 60
     intentos = 0
     while time.time() < fin:
-        for n, (forma, tam) in enumerate(FORMAS):
-            if n:
-                time.sleep(10)
+        # una sola petición por minuto, alternando las dos máquinas (más seguido Oracle contesta "demasiados intentos")
+        for forma, tam in [FORMAS[intentos % len(FORMAS)]]:
             det = oci.core.models.LaunchInstanceDetails(
                 availability_domain=ad, compartment_id=comp, display_name=NOMBRE, shape=forma,
                 shape_config=oci.core.models.LaunchInstanceShapeConfigDetails(**tam) if tam else None,
