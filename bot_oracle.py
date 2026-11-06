@@ -16,7 +16,7 @@ CLAVE_SSH_PUBLICA = ("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPlRgBtoCUaMWW9AL4uxO0
 FORMAS = [("VM.Standard.A1.Flex", {"ocpus": 1, "memory_in_gbs": 6}),
           ("VM.Standard.E2.1.Micro", None)]
 MINUTOS = int(os.environ.get("MINUTOS", "340"))     # cuánto dura cada vuelta del bot (GitHub corta a las 6 h)
-PAUSA = 60                                           # segundos entre intentos
+PAUSA = 150                                          # segundos entre intentos (Oracle no deja más seguido)
 
 
 def log(txt):
@@ -66,7 +66,7 @@ def main():
     fin = time.time() + MINUTOS * 60
     intentos = 0
     while time.time() < fin:
-        # una sola petición por minuto, alternando las dos máquinas (más seguido Oracle contesta "demasiados intentos")
+        # una sola petición cada 2,5 min, alternando las dos máquinas (más seguido Oracle contesta "demasiados intentos")
         for forma, tam in [FORMAS[intentos % len(FORMAS)]]:
             det = oci.core.models.LaunchInstanceDetails(
                 availability_domain=ad, compartment_id=comp, display_name=NOMBRE, shape=forma,
