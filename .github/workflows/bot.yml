@@ -1,0 +1,36 @@
+name: Bot Oracle
+
+on:
+  workflow_dispatch:
+  schedule:
+    # red de seguridad: si una vuelta se corta, esta la vuelve a arrancar
+    - cron: "17 */3 * * *"
+
+concurrency:
+  group: bot-oracle
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar llave
+        env:
+          OCI_CONFIG: ${{ secrets.OCI_CONFIG }}
+          OCI_API_KEY: ${{ secrets.OCI_API_KEY }}
+        run: |
+          mkdir -p ~/.oci
+          printf '%s\n' "$OCI_API_KEY" > ~/.oci/oci_api_key.pem
+          printf '%s\nkey_file=%s\n' "$OCI_CONFIG" "$HOME/.oci/oci_api_key.pem" > ~/.oci/config
+          chmod 600 ~/.oci/oci_api_key.pem ~/.oci/config
+      - run: pip install --quiet --disable-pip-version-check oci requests
+      - run: python bot_oracle.py
+        env:
+          NTFY_TEMA: ${{ secrets.NTFY_TEMA }}
+          GH_TOKEN: ${{ github.token }}
